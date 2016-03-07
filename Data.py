@@ -3,6 +3,7 @@ import pandas.io.data as web
 from sklearn.cluster import AgglomerativeClustering
 import math
 import numpy as np
+from StockCluster import StockCluster
 
 
 class Data:
@@ -11,6 +12,7 @@ class Data:
         self.rt = []
         self.vt = []
         self.get_raw_return_value()
+        self.cluster_objects_vectors=[]
 
     def load_yahoo_finance_data(self, stock):
         ''' This function load Finance data about a stock
@@ -62,6 +64,16 @@ class Data:
         :param: none
         :return: clustered data using Ward
         '''
+        ward = self.ward_clustering()
+        for i in range(6):
+            clus = StockCluster(ward, self.rt, self.vt)
+            self.cluster_objects_vectors.append(clus)
+
+    def ward_clustering(self):
+        ''' This method clustering data using Ward clustering method
+        :param: none
+        :return: clustered data using Ward
+        '''
         ward = AgglomerativeClustering(n_clusters=6, linkage='ward')
         # data matrix, each line is observation of 1 day
         # columns are features : return value| return closing volume
@@ -69,3 +81,6 @@ class Data:
         data_to_be_clustered = np.transpose(data_to_be_clustered)
         ward.fit(data_to_be_clustered)
         return ward
+
+d=Data('ALU')
+d.discretization()
