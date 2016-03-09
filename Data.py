@@ -8,18 +8,21 @@ from StockCluster import StockCluster
 
 class Data:
     def __init__(self, stock):
-        self.stock_price, self.volume = self.load_yahoo_finance_data(stock)
         self.rt = []
         self.vt = []
+        self.volume = []
+        self.stock_price = []
+        self.cluster_objects_vectors = []
+        self.load_yahoo_finance_data(stock)
         self.get_raw_return_value()
-        self.cluster_objects_vectors=[]
+        self.discretization()
 
     def load_yahoo_finance_data(self, stock):
         ''' This function load Finance data about a stock
         from Yahoo Finance API, then return trainng features, target label
         and training result.
         :param:  stock index. Eg :'ALU'
-        :return: an array with closing point values
+        :return: None
         '''
         start = date.datetime(2000, 1, 1)
         # last_date = date.datetime.today()
@@ -28,9 +31,8 @@ class Data:
         # Adj closing point of the index
         cls_point = result.loc[:, ['Close']]
         vol = result.loc[:, ['Volume']]
-        vol_ar = self.convert_data_to_array(vol)
-        cls_point_ar = self.convert_data_to_array(cls_point)
-        return cls_point_ar, vol_ar
+        self.volume = self.convert_data_to_array(vol)
+        self.stock_price = self.convert_data_to_array(cls_point)
 
     def convert_data_to_array(self, data):
         length = len(data.index)
@@ -64,9 +66,10 @@ class Data:
         :param: none
         :return: clustered data using Ward
         '''
+        print "Start discretization"
         ward = self.ward_clustering()
         for i in range(6):
-            clus = StockCluster(ward, self.rt, self.vt)
+            clus = StockCluster(ward, self.rt, self.vt, i)
             self.cluster_objects_vectors.append(clus)
 
     def ward_clustering(self):
@@ -81,6 +84,3 @@ class Data:
         data_to_be_clustered = np.transpose(data_to_be_clustered)
         ward.fit(data_to_be_clustered)
         return ward
-
-d=Data('ALU')
-d.discretization()
